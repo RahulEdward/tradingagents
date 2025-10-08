@@ -343,7 +343,7 @@ config["online_tools"] = False  # 使用缓存数据而不是实时数据
 
 如果遇到问题，可以：
 - 查看 [常见问题](../faq/faq.md)
-- 访问 [GitHub Issues](https://github.com/TauricResearch/TradingAgents/issues)
+- 访问 [GitHub Issues](https://github.com/py-genie/TradingAgents/issues)
 - 加入 [Discord 社区](https://discord.com/invite/hk9PGKShPK)
 - 查看 [故障排除指南](../faq/troubleshooting.md)
 

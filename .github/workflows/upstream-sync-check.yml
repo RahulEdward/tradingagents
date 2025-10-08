@@ -42,7 +42,7 @@ jobs:
     
     - name: 添加上游仓库
       run: |
-        git remote add upstream https://github.com/TauricResearch/TradingAgents.git || true
+        git remote add upstream https://github.com/py-genie/TradingAgents.git || true
         git fetch upstream
     
     - name: 检查上游更新
@@ -143,7 +143,7 @@ jobs:
           
           ## 📞 相关链接
           
-          - [上游仓库](https://github.com/TauricResearch/TradingAgents)
+          - [上游仓库](https://github.com/py-genie/TradingAgents)
           - [同步策略文档](docs/maintenance/upstream-sync.md)
           - [同步脚本](scripts/sync_upstream.py)
           
@@ -211,7 +211,7 @@ jobs:
     
     - name: 添加上游仓库
       run: |
-        git remote add upstream https://github.com/TauricResearch/TradingAgents.git
+        git remote add upstream https://github.com/py-genie/TradingAgents.git
         git fetch upstream
     
     - name: 执行自动同步

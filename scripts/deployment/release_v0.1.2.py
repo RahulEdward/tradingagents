@@ -146,7 +146,7 @@ python cli/main.py --stock AAPL --analysts market fundamentals
 
 ### 🙏 致谢
 
-感谢 [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) 原始项目的开发者们，为金融AI领域提供了优秀的开源框架。
+感谢 [py-genie/TradingAgents](https://github.com/py-genie/TradingAgents) 原始项目的开发者们，为金融AI领域提供了优秀的开源框架。
 
 ### 📄 许可证
 

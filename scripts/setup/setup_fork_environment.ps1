@@ -31,7 +31,7 @@ try {
     Write-Host "🔗 添加上游仓库..." -ForegroundColor Yellow
     $remotes = git remote
     if ($remotes -notcontains "upstream") {
-        git remote add upstream https://github.com/TauricResearch/TradingAgents.git
+        git remote add upstream https://github.com/py-genie/TradingAgents.git
         Write-Host "✅ 已添加上游仓库" -ForegroundColor Green
     } else {
         Write-Host "ℹ️ 上游仓库已存在" -ForegroundColor Cyan

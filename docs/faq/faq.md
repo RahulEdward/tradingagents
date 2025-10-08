@@ -449,9 +449,9 @@ ta = TradingAgentsGraph(debug=True, config=config)
 **A:** 多种获取帮助的渠道：
 
 1. **官方文档**: [docs/README.md](../README.md)
-2. **GitHub Issues**: [提交问题](https://github.com/TauricResearch/TradingAgents/issues)
+2. **GitHub Issues**: [提交问题](https://github.com/py-genie/TradingAgents/issues)
 3. **Discord 社区**: [加入讨论](https://discord.com/invite/hk9PGKShPK)
-4. **邮箱支持**: support@tauric.ai
+4. **邮箱支持**: support@py-genie.ai
 
 ### Q16: 如何报告 Bug？
 

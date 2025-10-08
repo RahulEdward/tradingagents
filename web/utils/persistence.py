@@ -1,6 +1,6 @@
 """
-持久化工具
-使用URL参数和session state结合的方式来持久化用户选择
+Persistence utilities
+Uses URL parameters combined with session state to persist user selections
 """
 
 import streamlit as st
@@ -11,36 +11,36 @@ import json
 logger = logging.getLogger(__name__)
 
 class ModelPersistence:
-    """模型选择持久化管理器"""
+    """Model selection persistence manager"""
     
     def __init__(self):
         self.storage_key = "model_config"
     
     def save_config(self, provider, category, model):
-        """保存配置到session state和URL"""
+        """Save configuration to session state and URL"""
         config = {
             'provider': provider,
             'category': category,
             'model': model
         }
         
-        # 保存到session state
+        # Save to session state
         st.session_state[self.storage_key] = config
         
-        # 保存到URL参数（通过query_params）
+        # Save to URL parameters (via query_params)
         try:
             st.query_params.update({
                 'provider': provider,
                 'category': category,
                 'model': model
             })
-            logger.debug(f"💾 [Persistence] 配置已保存: {config}")
+            logger.debug(f"💾 [Persistence] Configuration saved: {config}")
         except Exception as e:
-            logger.warning(f"⚠️ [Persistence] URL参数保存失败: {e}")
+            logger.warning(f"⚠️ [Persistence] Failed to save URL parameters: {e}")
     
     def load_config(self):
-        """从session state或URL加载配置"""
-        # 首先尝试从URL参数加载
+        """Load configuration from session state or URL"""
+        # First try to load from URL parameters
         try:
             query_params = st.query_params
             if 'provider' in query_params:
@@ -49,48 +49,48 @@ class ModelPersistence:
                     'category': query_params.get('category', 'openai'),
                     'model': query_params.get('model', '')
                 }
-                logger.debug(f"📥 [Persistence] 从URL加载配置: {config}")
+                logger.debug(f"📥 [Persistence] Configuration loaded from URL: {config}")
                 return config
         except Exception as e:
-            logger.warning(f"⚠️ [Persistence] URL参数加载失败: {e}")
+            logger.warning(f"⚠️ [Persistence] Failed to load URL parameters: {e}")
         
-        # 然后尝试从session state加载
+        # Then try to load from session state
         if self.storage_key in st.session_state:
             config = st.session_state[self.storage_key]
-            logger.debug(f"📥 [Persistence] 从Session State加载配置: {config}")
+            logger.debug(f"📥 [Persistence] Configuration loaded from Session State: {config}")
             return config
         
-        # 返回默认配置
+        # Return default configuration
         default_config = {
             'provider': 'dashscope',
             'category': 'openai',
             'model': ''
         }
-        logger.debug(f"📥 [Persistence] 使用默认配置: {default_config}")
+        logger.debug(f"📥 [Persistence] Using default configuration: {default_config}")
         return default_config
     
     def clear_config(self):
-        """清除配置"""
+        """Clear configuration"""
         if self.storage_key in st.session_state:
             del st.session_state[self.storage_key]
         
         try:
             st.query_params.clear()
-            logger.info("🗑️ [Persistence] 配置已清除")
+            logger.info("🗑️ [Persistence] Configuration cleared")
         except Exception as e:
-            logger.warning(f"⚠️ [Persistence] 清除失败: {e}")
+            logger.warning(f"⚠️ [Persistence] Failed to clear: {e}")
 
-# 全局实例
+# Global instance
 persistence = ModelPersistence()
 
 def save_model_selection(provider, category="", model=""):
-    """保存模型选择"""
+    """Save model selection"""
     persistence.save_config(provider, category, model)
 
 def load_model_selection():
-    """加载模型选择"""
+    """Load model selection"""
     return persistence.load_config()
 
 def clear_model_selection():
-    """清除模型选择"""
+    """Clear model selection"""
     persistence.clear_config()

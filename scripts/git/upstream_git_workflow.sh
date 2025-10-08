@@ -5,7 +5,7 @@
 set -e
 
 # 配置变量
-UPSTREAM_REPO="https://github.com/TauricResearch/TradingAgents.git"
+UPSTREAM_REPO="https://github.com/py-genie/TradingAgents.git"
 FORK_REPO="https://github.com/YOUR_USERNAME/TradingAgents.git"  # 需要替换为实际的Fork地址
 WORK_DIR="./upstream_work"
 CONTRIBUTION_DIR="./upstream_contribution"

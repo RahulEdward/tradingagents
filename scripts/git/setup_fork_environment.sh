@@ -4,7 +4,7 @@
 set -e
 
 # 配置变量
-UPSTREAM_REPO="https://github.com/TauricResearch/TradingAgents.git"
+UPSTREAM_REPO="https://github.com/py-genie/TradingAgents.git"
 FORK_REPO="https://github.com/hsliuping/TradingAgents.git"
 LOCAL_DIR="TradingAgents-Fork"
 TRADINGAGENTS_CN_DIR="../TradingAgentsCN"  # 假设TradingAgents-CN在上级目录

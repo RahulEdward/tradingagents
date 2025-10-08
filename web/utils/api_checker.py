@@ -1,13 +1,13 @@
 """
-API密钥检查工具
+API key checker tool
 """
 
 import os
 
 def check_api_keys():
-    """检查所有必要的API密钥是否已配置"""
+    """Check if all necessary API keys are configured"""
 
-    # 检查各个API密钥
+    # Check individual API keys
     dashscope_key = os.getenv("DASHSCOPE_API_KEY")
     finnhub_key = os.getenv("FINNHUB_API_KEY")
     openai_key = os.getenv("OPENAI_API_KEY")
@@ -16,54 +16,54 @@ def check_api_keys():
     qianfan_key = os.getenv("QIANFAN_API_KEY")
 
     
-    # 构建详细状态
+    # Build detailed status
     details = {
         "DASHSCOPE_API_KEY": {
             "configured": bool(dashscope_key),
-            "display": f"{dashscope_key[:12]}..." if dashscope_key else "未配置",
+            "display": f"{dashscope_key[:12]}..." if dashscope_key else "Not configured",
             "required": True,
-            "description": "阿里百炼API密钥"
+            "description": "Alibaba Dashscope API key"
         },
         "FINNHUB_API_KEY": {
             "configured": bool(finnhub_key),
-            "display": f"{finnhub_key[:12]}..." if finnhub_key else "未配置",
+            "display": f"{finnhub_key[:12]}..." if finnhub_key else "Not configured",
             "required": True,
-            "description": "金融数据API密钥"
+            "description": "Financial data API key"
         },
         "OPENAI_API_KEY": {
             "configured": bool(openai_key),
-            "display": f"{openai_key[:12]}..." if openai_key else "未配置",
+            "display": f"{openai_key[:12]}..." if openai_key else "Not configured",
             "required": False,
-            "description": "OpenAI API密钥"
+            "description": "OpenAI API key"
         },
         "ANTHROPIC_API_KEY": {
             "configured": bool(anthropic_key),
-            "display": f"{anthropic_key[:12]}..." if anthropic_key else "未配置",
+            "display": f"{anthropic_key[:12]}..." if anthropic_key else "Not configured",
             "required": False,
-            "description": "Anthropic API密钥"
+            "description": "Anthropic API key"
         },
         "GOOGLE_API_KEY": {
             "configured": bool(google_key),
-            "display": f"{google_key[:12]}..." if google_key else "未配置",
+            "display": f"{google_key[:12]}..." if google_key else "Not configured",
             "required": False,
-            "description": "Google AI API密钥"
+            "description": "Google AI API key"
         },
         "QIANFAN_ACCESS_KEY": {
             "configured": bool(qianfan_key),
-            "display": f"{qianfan_key[:16]}..." if qianfan_key else "未配置",
+            "display": f"{qianfan_key[:16]}..." if qianfan_key else "Not configured",
             "required": False,
-            "description": "文心一言（千帆）API Key（OpenAI兼容），一般以 bce-v3/ 开头"
+            "description": "Qianfan (ERNIE) API Key (OpenAI compatible), usually starts with bce-v3/"
         },
-        # QIANFAN_SECRET_KEY 不再用于OpenAI兼容路径，仅保留给脚本示例使用
+        # QIANFAN_SECRET_KEY is no longer used for OpenAI compatible path, only kept for script examples
         # "QIANFAN_SECRET_KEY": {
         #     "configured": bool(qianfan_sk),
-        #     "display": f"{qianfan_sk[:12]}..." if qianfan_sk else "未配置",
+        #     "display": f"{qianfan_sk[:12]}..." if qianfan_sk else "Not configured",
         #     "required": False,
-        #     "description": "文心一言（千帆）Secret Key (仅脚本示例)"
+        #     "description": "Qianfan (ERNIE) Secret Key (for script examples only)"
         # },
     }
     
-    # 检查必需的API密钥
+    # Check required API keys
     required_keys = [key for key, info in details.items() if info["required"]]
     missing_required = [key for key in required_keys if not details[key]["configured"]]
     
@@ -81,53 +81,53 @@ def check_api_keys():
     }
 
 def get_api_key_status_message():
-    """获取API密钥状态消息"""
+    """Get API key status message"""
     
     status = check_api_keys()
     
     if status["all_configured"]:
-        return "✅ 所有必需的API密钥已配置完成"
+        return "✅ All required API keys are configured"
     elif status["required_configured"]:
-        return "✅ 必需的API密钥已配置，可选API密钥未配置"
+        return "✅ Required API keys are configured, optional API keys are not configured"
     else:
         missing = ", ".join(status["missing_required"])
-        return f"❌ 缺少必需的API密钥: {missing}"
+        return f"❌ Missing required API keys: {missing}"
 
 def validate_api_key_format(key_type, api_key):
-    """验证API密钥格式"""
+    """Validate API key format"""
     
     if not api_key:
-        return False, "API密钥不能为空"
+        return False, "API key cannot be empty"
     
-    # 基本长度检查
+    # Basic length check
     if len(api_key) < 10:
-        return False, "API密钥长度过短"
+        return False, "API key is too short"
     
-    # 特定格式检查
+    # Specific format checks
     if key_type == "DASHSCOPE_API_KEY":
         if not api_key.startswith("sk-"):
-            return False, "阿里百炼API密钥应以'sk-'开头"
+            return False, "Alibaba Dashscope API key should start with 'sk-'"
     elif key_type == "OPENAI_API_KEY":
         if not api_key.startswith("sk-"):
-            return False, "OpenAI API密钥应以'sk-'开头"
+            return False, "OpenAI API key should start with 'sk-'"
     elif key_type == "QIANFAN_API_KEY":
         if not api_key.startswith("bce-v3/"):
-            return False, "千帆 API Key（OpenAI兼容）应以 'bce-v3/' 开头"
+            return False, "Qianfan API Key (OpenAI compatible) should start with 'bce-v3/'"
     
-    return True, "API密钥格式正确"
+    return True, "API key format is correct"
 
 def test_api_connection(key_type, api_key):
-    """测试API连接（简单验证）"""
+    """Test API connection (simple validation)"""
     
-    # 这里可以添加实际的API连接测试
-    # 为了简化，现在只做格式验证
+    # Actual API connection testing can be added here
+    # For simplicity, only format validation is done now
     
     is_valid, message = validate_api_key_format(key_type, api_key)
     
     if not is_valid:
         return False, message
     
-    # 可以在这里添加实际的API调用测试
-    # 例如：调用一个简单的API端点验证密钥有效性
+    # Actual API call testing can be added here
+    # For example: call a simple API endpoint to verify key validity
     
-    return True, "API密钥验证通过"
+    return True, "API key validation passed"

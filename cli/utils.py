@@ -1,3 +1,4 @@
+import os
 import questionary
 from typing import List, Optional, Tuple, Dict
 from rich.console import Console
@@ -10,18 +11,18 @@ logger = get_logger('cli')
 console = Console()
 
 ANALYST_ORDER = [
-    ("市场分析师 | Market Analyst", AnalystType.MARKET),
-    ("社交媒体分析师 | Social Media Analyst", AnalystType.SOCIAL),
-    ("新闻分析师 | News Analyst", AnalystType.NEWS),
-    ("基本面分析师 | Fundamentals Analyst", AnalystType.FUNDAMENTALS),
+    ("Market Analyst", AnalystType.MARKET),
+    ("Social Media Analyst", AnalystType.SOCIAL),
+    ("News Analyst", AnalystType.NEWS),
+    ("Fundamentals Analyst", AnalystType.FUNDAMENTALS),
 ]
 
 
 def get_ticker() -> str:
     """Prompt the user to enter a ticker symbol."""
     ticker = questionary.text(
-        "请输入要分析的股票代码 | Enter the ticker symbol to analyze:",
-        validate=lambda x: len(x.strip()) > 0 or "请输入有效的股票代码 | Please enter a valid ticker symbol.",
+        "Enter the ticker symbol to analyze:",
+        validate=lambda x: len(x.strip()) > 0 or "Please enter a valid ticker symbol.",
         style=questionary.Style(
             [
                 ("text", "fg:green"),
@@ -31,7 +32,7 @@ def get_ticker() -> str:
     ).ask()
 
     if not ticker:
-        logger.info(f"\n[red]未提供股票代码，退出程序... | No ticker symbol provided. Exiting...[/red]")
+        logger.info(f"\n[red]No ticker symbol provided. Exiting...[/red]")
         exit(1)
 
     return ticker.strip().upper()
@@ -52,9 +53,9 @@ def get_analysis_date() -> str:
             return False
 
     date = questionary.text(
-        "请输入分析日期 (YYYY-MM-DD) | Enter the analysis date (YYYY-MM-DD):",
+        "Enter the analysis date (YYYY-MM-DD):",
         validate=lambda x: validate_date(x.strip())
-        or "请输入有效的日期格式 YYYY-MM-DD | Please enter a valid date in YYYY-MM-DD format.",
+        or "Please enter a valid date in YYYY-MM-DD format.",
         style=questionary.Style(
             [
                 ("text", "fg:green"),
@@ -64,7 +65,7 @@ def get_analysis_date() -> str:
     ).ask()
 
     if not date:
-        logger.info(f"\n[red]未提供日期，退出程序... | No date provided. Exiting...[/red]")
+        logger.info(f"\n[red]No date provided. Exiting...[/red]")
         exit(1)
 
     return date.strip()
@@ -73,21 +74,21 @@ def get_analysis_date() -> str:
 def select_analysts(ticker: str = None) -> List[AnalystType]:
     """Select analysts using an interactive checkbox."""
 
-    # 根据股票类型过滤分析师选项
+    # Filter analyst options based on stock type
     available_analysts = ANALYST_ORDER.copy()
 
     if ticker:
-        # 检查是否为A股
+        # Check if it's a Chinese A-share stock
         if StockUtils.is_china_stock(ticker):
-            # A股市场不支持社交媒体分析师
+            # A-share market doesn't support social media analyst
             available_analysts = [
                 (display, value) for display, value in ANALYST_ORDER
                 if value != AnalystType.SOCIAL
             ]
-            console.print(f"[yellow]💡 检测到A股代码 {ticker}，社交媒体分析师不可用（国内数据源限制）[/yellow]")
+            console.print(f"[yellow]💡 Detected A-share code {ticker}, social media analyst unavailable (domestic data source limitation)[/yellow]")
 
     choices = questionary.checkbox(
-        "选择您的分析师团队 | Select Your [Analysts Team]:",
+        "Select analysts to use (use spacebar to select/deselect, enter to confirm):",
         choices=[
             questionary.Choice(display, value=value) for display, value in available_analysts
         ],
@@ -104,7 +105,7 @@ def select_analysts(ticker: str = None) -> List[AnalystType]:
     ).ask()
 
     if not choices:
-        logger.info(f"\n[red]未选择分析师，退出程序... | No analysts selected. Exiting...[/red]")
+        logger.info(f"\n[red]No analysts selected. Exiting...[/red]")
         exit(1)
 
     return choices
@@ -121,7 +122,7 @@ def select_research_depth() -> int:
     ]
 
     choice = questionary.select(
-        "选择您的研究深度 | Select Your [Research Depth]:",
+        "Select research depth:",
         choices=[
             questionary.Choice(display, value=value) for display, value in DEPTH_OPTIONS
         ],
@@ -136,7 +137,7 @@ def select_research_depth() -> int:
     ).ask()
 
     if choice is None:
-        logger.info(f"\n[red]未选择研究深度，退出程序... | No research depth selected. Exiting...[/red]")
+        logger.info(f"\n[red]No research depth selected. Exiting...[/red]")
         exit(1)
 
     return choice
@@ -160,17 +161,17 @@ def select_shallow_thinking_agent(provider) -> str:
             ("Claude Sonnet 4 - High performance and excellent reasoning", "claude-sonnet-4-0"),
         ],
         "google": [
-            ("Gemini 2.5 Pro - 🚀 最新旗舰模型", "gemini-2.5-pro"),
-            ("Gemini 2.5 Flash - ⚡ 最新快速模型", "gemini-2.5-flash"),
-            ("Gemini 2.5 Flash Lite - 💡 轻量快速", "gemini-2.5-flash-lite"),
-            ("Gemini 2.5 Pro-002 - 🔧 优化版本", "gemini-2.5-pro-002"),
-            ("Gemini 2.5 Flash-002 - ⚡ 优化快速版", "gemini-2.5-flash-002"),
+            ("Gemini 2.5 Pro - 🚀 Latest flagship model", "gemini-2.5-pro"),
+            ("Gemini 2.5 Flash - ⚡ Latest fast model", "gemini-2.5-flash"),
+            ("Gemini 2.5 Flash Lite - 💡 Lightweight and fast", "gemini-2.5-flash-lite"),
+            ("Gemini 2.5 Pro-002 - 🔧 Optimized version", "gemini-2.5-pro-002"),
+            ("Gemini 2.5 Flash-002 - ⚡ Optimized fast version", "gemini-2.5-flash-002"),
             ("Gemini 2.5 Flash - Adaptive thinking, cost efficiency", "gemini-2.5-flash-preview-05-20"),
-            ("Gemini 2.5 Pro Preview - 预览版本", "gemini-2.5-pro-preview-06-05"),
-            ("Gemini 2.0 Flash Lite - 轻量版本", "gemini-2.0-flash-lite"),
-            ("Gemini 2.0 Flash - 推荐使用", "gemini-2.0-flash"),
-            ("Gemini 1.5 Pro - 强大性能", "gemini-1.5-pro"),
-            ("Gemini 1.5 Flash - 快速响应", "gemini-1.5-flash"),
+            ("Gemini 2.5 Pro Preview - Preview version", "gemini-2.5-pro-preview-06-05"),
+            ("Gemini 2.0 Flash Lite - Lightweight version", "gemini-2.0-flash-lite"),
+            ("Gemini 2.0 Flash - Recommended", "gemini-2.0-flash"),
+            ("Gemini 1.5 Pro - Powerful performance", "gemini-1.5-pro"),
+            ("Gemini 1.5 Flash - Fast response", "gemini-1.5-flash"),
         ],
         "openrouter": [
             ("Meta: Llama 4 Scout", "meta-llama/llama-4-scout:free"),
@@ -181,43 +182,43 @@ def select_shallow_thinking_agent(provider) -> str:
             ("llama3.1 local", "llama3.1"),
             ("llama3.2 local", "llama3.2"),
         ],
-        "阿里百炼 (dashscope)": [
-            ("通义千问 Turbo - 快速响应，适合日常对话", "qwen-turbo"),
-            ("通义千问 Plus - 平衡性能和成本", "qwen-plus"),
-            ("通义千问 Max - 最强性能", "qwen-max"),
+        "Alibaba Dashscope": [
+            ("Qwen Turbo - Fast response, suitable for daily conversations", "qwen-turbo"),
+            ("Qwen Plus - Balanced performance and cost", "qwen-plus"),
+            ("Qwen Max - Maximum performance", "qwen-max"),
         ],
         "deepseek v3": [
-            ("DeepSeek Chat - 通用对话模型，适合股票投资分析", "deepseek-chat"),
+            ("DeepSeek Chat - General conversation model, suitable for stock investment analysis", "deepseek-chat"),
         ],
-        "🔧 自定义openai端点": [
+        "🔧 Custom OpenAI Endpoint": [
             ("GPT-4o-mini - Fast and efficient for quick tasks", "gpt-4o-mini"),
             ("GPT-4o - Standard model with solid capabilities", "gpt-4o"),
             ("GPT-3.5-turbo - Cost-effective option", "gpt-3.5-turbo"),
             ("Claude-3-haiku - Fast Anthropic model", "claude-3-haiku-20240307"),
             ("Llama-3.1-8B - Open source model", "meta-llama/llama-3.1-8b-instruct"),
             ("Qwen2.5-7B - Chinese optimized model", "qwen/qwen-2.5-7b-instruct"),
-            ("自定义模型 - 手动输入模型名称", "custom"),
+            ("Custom Model - Manually input model name", "custom"),
         ]
     }
 
-    # 获取选项列表
+    # Get options list
     options = SHALLOW_AGENT_OPTIONS[provider.lower()]
 
-    # 为国产LLM设置默认选择
+    # Set default choice for Chinese LLMs
     default_choice = None
-    if "阿里百炼" in provider:
-        default_choice = options[0][1]  # 通义千问 Turbo
+    if "dashscope" in provider.lower():
+        default_choice = options[0][1]  # Qwen Turbo
     elif "deepseek" in provider.lower():
-        default_choice = options[0][1]  # DeepSeek Chat (推荐选择)
+        default_choice = options[0][1]  # DeepSeek Chat (recommended choice)
 
     choice = questionary.select(
-        "选择您的快速思考LLM引擎 | Select Your [Quick-Thinking LLM Engine]:",
+        "Select Your Quick-Thinking LLM Engine:",
         choices=[
             questionary.Choice(display, value=value)
             for display, value in options
         ],
         default=default_choice,
-        instruction="\n- 使用方向键导航 | Use arrow keys to navigate\n- 按回车键选择 | Press Enter to select",
+        instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
             [
                 ("selected", "fg:green noinherit"),
@@ -229,7 +230,7 @@ def select_shallow_thinking_agent(provider) -> str:
 
     if choice is None:
         console.print(
-            "\n[red]未选择快速思考LLM引擎，退出程序... | No shallow thinking llm engine selected. Exiting...[/red]"
+            "\n[red]No shallow thinking llm engine selected. Exiting...[/red]"
         )
         exit(1)
 
@@ -258,17 +259,17 @@ def select_deep_thinking_agent(provider) -> str:
             ("Claude Opus 4 - Most powerful Anthropic model", "	claude-opus-4-0"),
         ],
         "google": [
-            ("Gemini 2.5 Pro - 🚀 最新旗舰模型", "gemini-2.5-pro"),
-            ("Gemini 2.5 Flash - ⚡ 最新快速模型", "gemini-2.5-flash"),
-            ("Gemini 2.5 Flash Lite - 💡 轻量快速", "gemini-2.5-flash-lite"),
-            ("Gemini 2.5 Pro-002 - 🔧 优化版本", "gemini-2.5-pro-002"),
-            ("Gemini 2.5 Flash-002 - ⚡ 优化快速版", "gemini-2.5-flash-002"),
+            ("Gemini 2.5 Pro - 🚀 Latest flagship model", "gemini-2.5-pro"),
+            ("Gemini 2.5 Flash - ⚡ Latest fast model", "gemini-2.5-flash"),
+            ("Gemini 2.5 Flash Lite - 💡 Lightweight and fast", "gemini-2.5-flash-lite"),
+            ("Gemini 2.5 Pro-002 - 🔧 Optimized version", "gemini-2.5-pro-002"),
+            ("Gemini 2.5 Flash-002 - ⚡ Optimized fast version", "gemini-2.5-flash-002"),
             ("Gemini 2.5 Flash - Adaptive thinking, cost efficiency", "gemini-2.5-flash-preview-05-20"),
-            ("Gemini 2.5 Pro Preview - 预览版本", "gemini-2.5-pro-preview-06-05"),
-            ("Gemini 2.0 Flash Lite - 轻量版本", "gemini-2.0-flash-lite"),
-            ("Gemini 2.0 Flash - 推荐使用", "gemini-2.0-flash"),
-            ("Gemini 1.5 Pro - 强大性能", "gemini-1.5-pro"),
-            ("Gemini 1.5 Flash - 快速响应", "gemini-1.5-flash"),
+            ("Gemini 2.5 Pro Preview - Preview version", "gemini-2.5-pro-preview-06-05"),
+            ("Gemini 2.0 Flash Lite - Lightweight version", "gemini-2.0-flash-lite"),
+            ("Gemini 2.0 Flash - Recommended", "gemini-2.0-flash"),
+            ("Gemini 1.5 Pro - Powerful performance", "gemini-1.5-pro"),
+            ("Gemini 1.5 Flash - Fast response", "gemini-1.5-flash"),
         ],
         "openrouter": [
             ("DeepSeek V3 - a 685B-parameter, mixture-of-experts model", "deepseek/deepseek-chat-v3-0324:free"),
@@ -278,16 +279,16 @@ def select_deep_thinking_agent(provider) -> str:
             ("llama3.1 local", "llama3.1"),
             ("qwen3", "qwen3"),
         ],
-        "阿里百炼 (dashscope)": [
-            ("通义千问 Turbo - 快速响应，适合日常对话", "qwen-turbo"),
-            ("通义千问 Plus - 平衡性能和成本", "qwen-plus"),
-            ("通义千问 Max - 最强性能", "qwen-max"),
-            ("通义千问 Max 长文本版 - 支持超长上下文", "qwen-max-longcontext"),
+        "Alibaba Dashscope": [
+            ("Qwen Turbo - Fast response, suitable for daily conversations", "qwen-turbo"),
+            ("Qwen Plus - Balanced performance and cost", "qwen-plus"),
+            ("Qwen Max - Maximum performance", "qwen-max"),
+            ("Qwen Max Long Context - Supports ultra-long context", "qwen-max-longcontext"),
         ],
         "deepseek v3": [
-            ("DeepSeek Chat - 通用对话模型，适合股票投资分析", "deepseek-chat"),
+            ("DeepSeek Chat - General conversation model, suitable for stock investment analysis", "deepseek-chat"),
         ],
-        "🔧 自定义openai端点": [
+        "🔧 Custom OpenAI Endpoint": [
             ("GPT-4o - Standard model with solid capabilities", "gpt-4o"),
             ("GPT-4o-mini - Fast and efficient for quick tasks", "gpt-4o-mini"),
             ("o1-preview - Advanced reasoning model", "o1-preview"),
@@ -296,28 +297,28 @@ def select_deep_thinking_agent(provider) -> str:
             ("Claude-3-opus - Most capable Anthropic model", "claude-3-opus-20240229"),
             ("Llama-3.1-70B - Large open source model", "meta-llama/llama-3.1-70b-instruct"),
             ("Qwen2.5-72B - Chinese optimized model", "qwen/qwen-2.5-72b-instruct"),
-            ("自定义模型 - 手动输入模型名称", "custom"),
+            ("Custom Model - Manually input model name", "custom"),
         ]
     }
     
-    # 获取选项列表
+    # Get options list
     options = DEEP_AGENT_OPTIONS[provider.lower()]
 
-    # 为国产LLM设置默认选择
+    # Set default choice for Chinese LLMs
     default_choice = None
-    if "阿里百炼" in provider:
-        default_choice = options[0][1]  # 通义千问 Turbo
+    if "dashscope" in provider.lower():
+        default_choice = options[0][1]  # Qwen Turbo
     elif "deepseek" in provider.lower():
         default_choice = options[0][1]  # DeepSeek Chat
 
     choice = questionary.select(
-        "选择您的深度思考LLM引擎 | Select Your [Deep-Thinking LLM Engine]:",
+        "Select Your Deep-Thinking LLM Engine:",
         choices=[
             questionary.Choice(display, value=value)
             for display, value in options
         ],
         default=default_choice,
-        instruction="\n- 使用方向键导航 | Use arrow keys to navigate\n- 按回车键选择 | Press Enter to select",
+        instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
             [
                 ("selected", "fg:green noinherit"),
@@ -328,7 +329,7 @@ def select_deep_thinking_agent(provider) -> str:
     ).ask()
 
     if choice is None:
-        logger.info(f"\n[red]未选择深度思考LLM引擎，退出程序... | No deep thinking llm engine selected. Exiting...[/red]")
+        logger.info(f"\n[red]No deep thinking llm engine selected. Exiting...[/red]")
         exit(1)
 
     return choice
@@ -336,12 +337,12 @@ def select_deep_thinking_agent(provider) -> str:
 def select_llm_provider() -> tuple[str, str]:
     """Select the LLM provider using interactive selection."""
     # Define LLM provider options with their corresponding endpoints
-    # 国产LLM作为默认推荐选项放在前面
+    # Chinese LLMs as default recommended options placed first
     BASE_URLS = [
-        ("阿里百炼 (DashScope)", "https://dashscope.aliyuncs.com/api/v1"),
+        ("Alibaba DashScope", "https://dashscope.aliyuncs.com/api/v1"),
         ("DeepSeek V3", "https://api.deepseek.com"),
         ("OpenAI", "https://api.openai.com/v1"),
-        ("🔧 自定义OpenAI端点", "custom"),
+        ("🔧 Custom OpenAI Endpoint", "custom"),
         ("Anthropic", "https://api.anthropic.com/"),
         ("Google", "https://generativelanguage.googleapis.com/v1"),
         ("Openrouter", "https://openrouter.ai/api/v1"),
@@ -349,13 +350,13 @@ def select_llm_provider() -> tuple[str, str]:
     ]
     
     choice = questionary.select(
-        "选择您的LLM提供商 | Select your LLM Provider:",
+        "Select your LLM Provider:",
         choices=[
             questionary.Choice(display, value=(display, value))
             for display, value in BASE_URLS
         ],
-        default=(BASE_URLS[0][0], BASE_URLS[0][1]),  # 默认选择阿里百炼的完整值
-        instruction="\n- 使用方向键导航 | Use arrow keys to navigate\n- 按回车键选择 | Press Enter to select\n- 🇨🇳 推荐使用阿里百炼 (默认选择)",
+        default=(BASE_URLS[0][0], BASE_URLS[0][1]),  # Default selection for Alibaba DashScope
+        instruction="\n- Use arrow keys to navigate\n- Press Enter to select\n- 🇨🇳 Recommended: Alibaba DashScope (default selection)",
         style=questionary.Style(
             [
                 ("selected", "fg:green noinherit"),
@@ -366,29 +367,29 @@ def select_llm_provider() -> tuple[str, str]:
     ).ask()
     
     if choice is None:
-        logger.info(f"\n[red]未选择LLM提供商，退出程序... | No LLM provider selected. Exiting...[/red]")
+        logger.info(f"\n[red]No LLM provider selected. Exiting...[/red]")
         exit(1)
     
     display_name, url = choice
     
-    # 如果选择了自定义OpenAI端点，询问用户输入URL
+    # If custom OpenAI endpoint is selected, ask user to input URL
     if url == "custom":
         custom_url = questionary.text(
-            "请输入自定义OpenAI端点URL | Please enter custom OpenAI endpoint URL:",
+            "Please enter custom OpenAI endpoint URL:",
             default="https://api.openai.com/v1",
-            instruction="例如: https://api.openai.com/v1 或 http://localhost:8000/v1"
+            instruction="Example: https://api.openai.com/v1 or http://localhost:8000/v1"
         ).ask()
         
         if custom_url is None:
-            logger.info(f"\n[red]未输入自定义URL，退出程序... | No custom URL entered. Exiting...[/red]")
+            logger.info(f"\n[red]No custom URL entered. Exiting...[/red]")
             exit(1)
             
         url = custom_url
-        logger.info(f"您选择了 | You selected: {display_name}\tURL: {url}")
+        logger.info(f"You selected: {display_name}\tURL: {url}")
         
-        # 设置环境变量以便后续使用
+        # Set environment variable for subsequent use
         os.environ['CUSTOM_OPENAI_BASE_URL'] = url
     else:
-        logger.info(f"您选择了 | You selected: {display_name}\tURL: {url}")
+        logger.info(f"You selected: {display_name}\tURL: {url}")
 
     return display_name, url

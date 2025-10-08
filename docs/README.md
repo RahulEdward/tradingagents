@@ -129,4 +129,4 @@
 - **GitHub Issues**: [提交问题和建议](https://github.com/hsliuping/TradingAgents-CN/issues)
 - **邮箱**: hsliup@163.com
 - 项目ＱＱ群：782124367
-- **原项目**: [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents)
+- **原项目**: [py-genie/TradingAgents](https://github.com/py-genie/TradingAgents)

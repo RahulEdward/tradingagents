@@ -1,7 +1,7 @@
 """
-用户认证管理器
-处理用户登录、权限验证等功能
-支持前端缓存登录状态，10分钟无操作自动失效
+User Authentication Manager
+Handles user login, permission verification and other functions
+Supports frontend cache login state, automatically expires after 10 minutes of inactivity
 """
 
 import streamlit as st
@@ -12,31 +12,31 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 import time
 
-# 导入日志模块
+# Import logging module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('auth')
 
-# 导入用户活动记录器
+# Import user activity logger
 try:
     from .user_activity_logger import user_activity_logger
 except ImportError:
     user_activity_logger = None
-    logger.warning("⚠️ 用户活动记录器导入失败")
+    logger.warning("⚠️ User activity logger import failed")
 
 class AuthManager:
-    """用户认证管理器"""
+    """User Authentication Manager"""
     
     def __init__(self):
         self.users_file = Path(__file__).parent.parent / "config" / "users.json"
-        self.session_timeout = 600  # 10分钟超时
+        self.session_timeout = 600  # 10 minutes timeout
         self._ensure_users_file()
     
     def _ensure_users_file(self):
-        """确保用户配置文件存在"""
+        """Ensure user configuration file exists"""
         self.users_file.parent.mkdir(exist_ok=True)
         
         if not self.users_file.exists():
-            # 创建默认用户配置
+            # Create default user configuration
             default_users = {
                 "admin": {
                     "password_hash": self._hash_password("admin123"),
@@ -55,16 +55,16 @@ class AuthManager:
             with open(self.users_file, 'w', encoding='utf-8') as f:
                 json.dump(default_users, f, indent=2, ensure_ascii=False)
             
-            logger.info(f"✅ 用户认证系统初始化完成")
-            logger.info(f"📁 用户配置文件: {self.users_file}")
+            logger.info(f"✅ User authentication system initialization completed")
+            logger.info(f"📁 User configuration file: {self.users_file}")
     
     def _inject_auth_cache_js(self):
-        """注入前端认证缓存JavaScript代码"""
+        """Inject frontend authentication cache JavaScript code"""
         js_code = """
         <script>
-        // 认证缓存管理
+        // Authentication cache management
         window.AuthCache = {
-            // 保存登录状态到localStorage
+            // Save login state to localStorage
             saveAuth: function(userInfo) {
                 const authData = {
                     userInfo: userInfo,
@@ -72,10 +72,10 @@ class AuthManager:
                     lastActivity: Date.now()
                 };
                 localStorage.setItem('tradingagents_auth', JSON.stringify(authData));
-                console.log('✅ 登录状态已保存到前端缓存');
+                console.log('✅ Login state saved to frontend cache');
             },
             
-            // 从localStorage获取登录状态
+            // Get login state from localStorage
             getAuth: function() {
                 try {
                     const authData = localStorage.getItem('tradingagents_auth');
@@ -83,34 +83,34 @@ class AuthManager:
                     
                     const data = JSON.parse(authData);
                     const now = Date.now();
-                    const timeout = 10 * 60 * 1000; // 10分钟
+                    const timeout = 10 * 60 * 1000; // 10 minutes
                     
-                    // 检查是否超时
+                    // Check if timeout
                     if (now - data.lastActivity > timeout) {
                         this.clearAuth();
-                        console.log('⏰ 登录状态已过期，自动清除');
+                        console.log('⏰ Login state expired, automatically cleared');
                         return null;
                     }
                     
-                    // 更新最后活动时间
+                    // Update last activity time
                     data.lastActivity = now;
                     localStorage.setItem('tradingagents_auth', JSON.stringify(data));
                     
                     return data.userInfo;
                 } catch (e) {
-                    console.error('❌ 读取登录状态失败:', e);
+                    console.error('❌ Failed to read login state:', e);
                     this.clearAuth();
                     return null;
                 }
             },
             
-            // 清除登录状态
+            // Clear login state
             clearAuth: function() {
                 localStorage.removeItem('tradingagents_auth');
-                console.log('🧹 登录状态已清除');
+                console.log('🧹 Login state cleared');
             },
             
-            // 更新活动时间
+            // Update activity time
             updateActivity: function() {
                 const authData = localStorage.getItem('tradingagents_auth');
                 if (authData) {
@@ -119,25 +119,25 @@ class AuthManager:
                         data.lastActivity = Date.now();
                         localStorage.setItem('tradingagents_auth', JSON.stringify(data));
                     } catch (e) {
-                        console.error('❌ 更新活动时间失败:', e);
+                        console.error('❌ Failed to update activity time:', e);
                     }
                 }
             }
         };
         
-        // 监听用户活动，更新最后活动时间
+        // Listen to user activity, update last activity time
         ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
             document.addEventListener(event, function() {
                 window.AuthCache.updateActivity();
             }, { passive: true });
         });
         
-        // 页面加载时检查登录状态
+        // Check login state when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const authInfo = window.AuthCache.getAuth();
             if (authInfo) {
-                console.log('🔄 从前端缓存恢复登录状态:', authInfo.username);
-                // 通知Streamlit恢复登录状态
+                console.log('🔄 Restore login state from frontend cache:', authInfo.username);
+                // Notify Streamlit to restore login state
                 window.parent.postMessage({
                     type: 'restore_auth',
                     userInfo: authInfo
@@ -149,44 +149,44 @@ class AuthManager:
         st.components.v1.html(js_code, height=0)
     
     def _hash_password(self, password: str) -> str:
-        """密码哈希"""
+        """Password hash"""
         return hashlib.sha256(password.encode()).hexdigest()
     
     def _load_users(self) -> Dict:
-        """加载用户配置"""
+        """Load user configuration"""
         try:
             with open(self.users_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            logger.error(f"❌ 加载用户配置失败: {e}")
+            logger.error(f"❌ Failed to load user configuration: {e}")
             return {}
     
     def authenticate(self, username: str, password: str) -> Tuple[bool, Optional[Dict]]:
         """
-        用户认证
+        User authentication
         
         Args:
-            username: 用户名
-            password: 密码
+            username: Username
+            password: Password
             
         Returns:
-            (认证成功, 用户信息)
+            (Authentication success, User info)
         """
         users = self._load_users()
         
         if username not in users:
-            logger.warning(f"⚠️ 用户不存在: {username}")
-            # 记录登录失败
+            logger.warning(f"⚠️ User does not exist: {username}")
+            # Record login failure
             if user_activity_logger:
-                user_activity_logger.log_login(username, False, "用户不存在")
+                user_activity_logger.log_login(username, False, "User does not exist")
             return False, None
         
         user_info = users[username]
         password_hash = self._hash_password(password)
         
         if password_hash == user_info["password_hash"]:
-            logger.info(f"✅ 用户登录成功: {username}")
-            # 记录登录成功
+            logger.info(f"✅ User login successful: {username}")
+            # Record login success
             if user_activity_logger:
                 user_activity_logger.log_login(username, True)
             return True, {
@@ -195,21 +195,21 @@ class AuthManager:
                 "permissions": user_info["permissions"]
             }
         else:
-            logger.warning(f"⚠️ 密码错误: {username}")
-            # 记录登录失败
+            logger.warning(f"⚠️ Password incorrect: {username}")
+            # Record login failure
             if user_activity_logger:
-                user_activity_logger.log_login(username, False, "密码错误")
+                user_activity_logger.log_login(username, False, "Password incorrect")
             return False, None
     
     def check_permission(self, permission: str) -> bool:
         """
-        检查当前用户权限
+        Check current user permissions
         
         Args:
-            permission: 权限名称
+            permission: Permission name
             
         Returns:
-            是否有权限
+            Whether has permission
         """
         if not self.is_authenticated():
             return False
@@ -220,40 +220,40 @@ class AuthManager:
         return permission in permissions
     
     def is_authenticated(self) -> bool:
-        """检查用户是否已认证"""
-        # 首先检查session_state中的认证状态
+        """Check if user is authenticated"""
+        # First check authentication status in session_state
         authenticated = st.session_state.get('authenticated', False)
         login_time = st.session_state.get('login_time', 0)
         current_time = time.time()
         
-        logger.debug(f"🔍 [认证检查] authenticated: {authenticated}, login_time: {login_time}, current_time: {current_time}")
+        logger.debug(f"🔍 [Auth Check] authenticated: {authenticated}, login_time: {login_time}, current_time: {current_time}")
         
         if authenticated:
-            # 检查会话超时
+            # Check session timeout
             time_elapsed = current_time - login_time
-            logger.debug(f"🔍 [认证检查] 会话时长: {time_elapsed:.1f}秒, 超时限制: {self.session_timeout}秒")
+            logger.debug(f"🔍 [Auth Check] Session duration: {time_elapsed:.1f}s, timeout limit: {self.session_timeout}s")
             
             if time_elapsed > self.session_timeout:
-                logger.info(f"⏰ 会话超时，自动登出 (已过时间: {time_elapsed:.1f}秒)")
+                logger.info(f"⏰ Session timeout, auto logout (elapsed time: {time_elapsed:.1f}s)")
                 self.logout()
                 return False
             
-            logger.debug(f"✅ [认证检查] 用户已认证且未超时")
+            logger.debug(f"✅ [Auth Check] User authenticated and not timed out")
             return True
         
-        logger.debug(f"❌ [认证检查] 用户未认证")
+        logger.debug(f"❌ [Auth Check] User not authenticated")
         return False
     
     def login(self, username: str, password: str) -> bool:
         """
-        用户登录
+        User login
         
         Args:
-            username: 用户名
-            password: 密码
+            username: Username
+            password: Password
             
         Returns:
-            登录是否成功
+            Whether login is successful
         """
         success, user_info = self.authenticate(username, password)
         
@@ -262,30 +262,30 @@ class AuthManager:
             st.session_state.user_info = user_info
             st.session_state.login_time = time.time()
             
-            # 保存到前端缓存 - 使用与前端JavaScript兼容的格式
-            current_time_ms = int(time.time() * 1000)  # 转换为毫秒
+            # Save to frontend cache - use format compatible with frontend JavaScript
+            current_time_ms = int(time.time() * 1000)  # Convert to milliseconds
             auth_data = {
-                "userInfo": user_info,  # 使用userInfo而不是user_info
+                "userInfo": user_info,  # Use userInfo instead of user_info
                 "loginTime": time.time(),
-                "lastActivity": current_time_ms,  # 添加lastActivity字段
+                "lastActivity": current_time_ms,  # Add lastActivity field
                 "authenticated": True
             }
             
             save_to_cache_js = f"""
             <script>
-            console.log('🔐 保存认证数据到localStorage');
+            console.log('🔐 Saving authentication data to localStorage');
             try {{
                 const authData = {json.dumps(auth_data)};
                 localStorage.setItem('tradingagents_auth', JSON.stringify(authData));
-                console.log('✅ 认证数据已保存到localStorage:', authData);
+                console.log('✅ Authentication data saved to localStorage:', authData);
             }} catch (e) {{
-                console.error('❌ 保存认证数据失败:', e);
+                console.error('❌ Failed to save authentication data:', e);
             }}
             </script>
             """
             st.components.v1.html(save_to_cache_js, height=0)
             
-            logger.info(f"✅ 用户 {username} 登录成功，已保存到前端缓存")
+            logger.info(f"✅ User {username} login successful, saved to frontend cache")
             return True
         else:
             st.session_state.authenticated = False
@@ -293,92 +293,92 @@ class AuthManager:
             return False
     
     def logout(self):
-        """用户登出"""
+        """User logout"""
         username = st.session_state.get('user_info', {}).get('username', 'unknown')
         st.session_state.authenticated = False
         st.session_state.user_info = None
         st.session_state.login_time = None
         
-        # 清除前端缓存
+        # Clear frontend cache
         clear_cache_js = """
         <script>
-        console.log('🚪 清除认证数据');
+        console.log('🚪 Clear authentication data');
         try {
             localStorage.removeItem('tradingagents_auth');
             localStorage.removeItem('tradingagents_last_activity');
-            console.log('✅ 认证数据已清除');
+            console.log('✅ Authentication data cleared');
         } catch (e) {
-            console.error('❌ 清除认证数据失败:', e);
+            console.error('❌ Failed to clear authentication data:', e);
         }
         </script>
         """
         st.components.v1.html(clear_cache_js, height=0)
         
-        logger.info(f"✅ 用户 {username} 登出，已清除前端缓存")
+        logger.info(f"✅ User {username} logged out, frontend cache cleared")
         
-        # 记录登出活动
+        # Record logout activity
         if user_activity_logger:
             user_activity_logger.log_logout(username)
     
     def restore_from_cache(self, user_info: Dict, login_time: float = None) -> bool:
         """
-        从前端缓存恢复登录状态
+        Restore login state from frontend cache
         
         Args:
-            user_info: 用户信息
-            login_time: 原始登录时间，如果为None则使用当前时间
+            user_info: User information
+            login_time: Original login time, use current time if None
             
         Returns:
-            恢复是否成功
+            Whether restoration is successful
         """
         try:
-            # 验证用户信息的有效性
+            # Validate user information validity
             username = user_info.get('username')
             if not username:
-                logger.warning(f"⚠️ 恢复失败: 用户信息中没有用户名")
+                logger.warning(f"⚠️ Restoration failed: No username in user info")
                 return False
             
-            # 检查用户是否仍然存在
+            # Check if user still exists
             users = self._load_users()
             if username not in users:
-                logger.warning(f"⚠️ 尝试恢复不存在的用户: {username}")
+                logger.warning(f"⚠️ Attempting to restore non-existent user: {username}")
                 return False
             
-            # 恢复登录状态，使用原始登录时间或当前时间
+            # Restore login state, use original login time or current time
             restore_time = login_time if login_time is not None else time.time()
             
             st.session_state.authenticated = True
             st.session_state.user_info = user_info
             st.session_state.login_time = restore_time
             
-            logger.info(f"✅ 从前端缓存恢复用户 {username} 的登录状态")
-            logger.debug(f"🔍 [恢复状态] login_time: {restore_time}, current_time: {time.time()}")
+            logger.info(f"✅ Restored login state for user {username} from frontend cache")
+            logger.debug(f"🔍 [Restore State] login_time: {restore_time}, current_time: {time.time()}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ 从前端缓存恢复登录状态失败: {e}")
+            logger.error(f"❌ Failed to restore login state from frontend cache: {e}")
             return False
     
     def get_current_user(self) -> Optional[Dict]:
-        """获取当前用户信息"""
+        """Get current user information"""
         if self.is_authenticated():
             return st.session_state.get('user_info')
         return None
     
     def require_permission(self, permission: str) -> bool:
         """
-        要求特定权限，如果没有权限则显示错误信息
+        Require specific permission, show error message if no permission
         
         Args:
-            permission: 权限名称
+            permission: Permission name
             
         Returns:
-            是否有权限
+            Whether has permission
         """
         if not self.check_permission(permission):
-            st.error(f"❌ 您没有 '{permission}' 权限，请联系管理员")
+            st.error(f"❌ You do not have '{permission}' permission, please contact administrator")
             return False
         return True
 
-# 全局认证管理器实例
+# Global authentication manager instance
 auth_manager = AuthManager()

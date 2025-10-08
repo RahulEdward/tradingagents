@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档详细说明如何保持 TradingAgents-CN 与原项目 [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) 的同步。
+本文档详细说明如何保持 TradingAgents-CN 与原项目 [py-genie/TradingAgents](https://github.com/py-genie/TradingAgents) 的同步。
 
 ## 🎯 同步目标
 
@@ -25,7 +25,7 @@
 #### 自动监控
 ```bash
 # 设置GitHub通知
-# 1. 访问 https://github.com/TauricResearch/TradingAgents
+# 1. 访问 https://github.com/py-genie/TradingAgents
 # 2. 点击 "Watch" -> "Custom" -> 选择 "Releases" 和 "Issues"
 # 3. 启用邮件通知
 ```
