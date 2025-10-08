@@ -187,18 +187,3 @@ Please reference our work if you find *TradingAgents* provides you with some hel
 
 # TradingAgents: Multi-Agents LLM Financial Trading Framework 
 
-> 🎉 **TradingAgents** officially released! We have received numerous inquiries about the work, and we would like to express our thanks for the enthusiasm in our community.
->
-> So we decided to fully open-source the framework. Looking forward to building impactful projects with you!
-
-<div align="center">
-<a href="https://www.star-history.com/#py-genie/TradingAgents&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=py-genie/TradingAgents&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=py-genie/TradingAgents&type=Date" />
-   <img alt="TradingAgents Star History" src="https://api.star-history.com/svg?repos=py-genie/TradingAgents&type=Date" style="width: 80%; height: auto;" />
- </picture>
-</a>
-</div>
-
-<div align="center">
